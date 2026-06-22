@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividad Interactiva: Ventana de Word</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* --- Estructura del Encabezado con Insignia --- */
+        .encabezado-institucional {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1450px;
+            width: 100%;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .insignia-colegio {
+            width: 90px;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.15));
+        }
+
+        .titulos-encabezado {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #2b579a;
+            margin: 0 0 5px 0;
+            font-size: 2em;
+        }
+
+        p.instrucciones {
+            font-size: 1.1em;
+            color: #555;
+            margin: 0;
+        }
+
+        /* ---------------------------------------------- */
+
+        .contador-errores {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 20px;
+            background: #fadbd8;
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #f5b7b1;
+        }
+
+        .contenedor-principal {
+            display: flex;
+            gap: 25px;
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            max-width: 1450px;
+            width: 100%;
+            box-sizing: border-box;
+            align-items: flex-start;
+        }
+
+        .area-imagen {
+            position: relative;
+            width: 1024px;
+            height: 522px;
+            box-sizing: border-box;
+            background-image: url('ventana_word.png');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            border-radius: 12px;
+            border: 2px solid #b5c4df;
+            background-position: center;
+            flex-shrink: 0;
+        }
+
+        .zona-soltar {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border: 2.5px solid #d4ac0d;
+            background-color: #f7dc6f; 
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s ease-in-out;
+            box-sizing: border-box;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+
+        .zona-soltar.over {
+            transform: translate(-50%, -50%) scale(1.2);
+            border-style: dashed;
+            box-shadow: 0 0 10px rgba(212, 172, 13, 0.8);
+        }
+
+        /* Coordenadas de calibración */
+        #zona1  { top: 3.5%;  left: 1.5%; }
+        #zona2  { top: 3.5%;  left: 41.0%; }
+        #zona3  { top: 11.5%; left: 11.2%; }
+        #zona4  { top: 19.5%; left: 36.4%; }
+        #zona5  { top: 31.8%; left: 13.8%; }
+        #zona6  { top: 55.5%; left: 1.5%; }
+        #zona7  { top: 59.5%; left: 41.0%; }
+        #zona8  { top: 96.5%; left: 9.3%; }
+        #zona9  { top: 96.5%; left: 67.5%; }
+        #zona10 { top: 96.5%; left: 89.6%; }
+
+        .banco-etiquetas {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .etiqueta {
+            background-color: #2b579a;
+            color: white;
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: grab;
+            font-size: 0.95em;
+            font-weight: 600;
+            box-shadow: 0 3px 6px rgba(43, 87, 154, 0.15);
+            user-select: none;
+            transition: background 0.2s, transform 0.1s, opacity 0.2s;
+            display: flex;
+            align-items: center;
+            touch-action: none;
+        }
+
+        .etiqueta:active {
+            cursor: grabbing;
+        }
+
+        .etiqueta.arrastrando {
+            opacity: 0.4;
+        }
+
+        .zona-soltar.correcto {
+            background-color: #2cc571 !important;
+            border-color: #219653 !important;
+            color: white !important;
+            border-style: solid;
+            box-shadow: 0 0 10px rgba(44, 197, 113, 0.6);
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #mensaje-exito {
+            display: none;
+            margin-top: 25px;
+            padding: 15px 45px;
+            background-color: #2cc571;
+            color: white;
+            font-size: 1.4em;
+            border-radius: 30px;
+            font-weight: bold;
+            box-shadow: 0 6px 16px rgba(44, 197, 113, 0.3);
+            animation: opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+
+        .creditos-autor {
+            margin-top: 40px;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+            color: #7f8c8d;
+            text-align: center;
+            border-top: 1px solid #d6dbdf;
+            padding-top: 15px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .creditos-autor strong {
+            color: #34495e;
+        }
+
+        @keyframes aparecer {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 1300px) {
+            .encabezado-institucional {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .contenedor-principal {
+                flex-direction: column;
+                align-items: center;
+            }
+            .banco-etiquetas {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="encabezado-institucional">
+        <img src="Insignia_trasp.jpg" alt="Insignia I.E.I. N° 34031" class="insignia-colegio" onerror="this.onerror=null; this.src='Insignia_trasp.png';">
+        <div class="titulos-encabezado">
+            <h1>Actividad Interactiva: Estructura de la Ventana de Word</h1>
+            <p class="instrucciones">Arrastra los nombres de los componentes hacia sus círculos amarillos correspondientes. ¡Al cometer 3 errores el juego se reiniciará!</p>
+        </div>
+    </header>
+
+    <div class="contador-errores" id="contador-texto">Errores: 0 / 3</div>
+
+    <div class="contenedor-principal">
+        <div class="area-imagen">
+            <div class="zona-soltar" id="zona1" data-id="1"></div>
+            <div class="zona-soltar" id="zona2" data-id="2"></div>
+            <div class="zona-soltar" id="zona3" data-id="3"></div>
+            <div class="zona-soltar" id="zona4" data-id="4"></div>
+            <div class="zona-soltar" id="zona5" data-id="5"></div>
+            <div class="zona-soltar" id="zona6" data-id="6"></div>
+            <div class="zona-soltar" id="zona7" data-id="7"></div>
+            <div class="zona-soltar" id="zona8" data-id="8"></div>
+            <div class="zona-soltar" id="zona9" data-id="9"></div>
+            <div class="zona-soltar" id="zona10" data-id="10"></div>
+        </div>
+
+        <div class="banco-etiquetas">
+            <div class="etiqueta" draggable="true" id="et1" data-id="1">Barra de Acceso Rápido</div>
+            <div class="etiqueta" draggable="true" id="et2" data-id="2">Barra de Título</div>
+            <div class="etiqueta" draggable="true" id="et3" data-id="3">Pestañas de Opciones</div>
+            <div class="etiqueta" draggable="true" id="et4" data-id="4">Cinta de Opciones</div>
+            <div class="etiqueta" draggable="true" id="et5" data-id="5">Regla Horizontal</div>
+            <div class="etiqueta" draggable="true" id="et6" data-id="6">Regla Vertical</div>
+            <div class="etiqueta" draggable="true" id="et7" data-id="7">Área de Trabajo / Documento</div>
+            <div class="etiqueta" draggable="true" id="et8" data-id="8">Barra de Estado</div>
+            <div class="etiqueta" draggable="true" id="et9" data-id="9">Botones de Vista</div>
+            <div class="etiqueta" draggable="true" id="et10" data-id="10">Control de Zoom</div>
+        </div>
+    </div>
+
+    <div id="mensaje-exito">🎉 ¡Excelente! Has completado la estructura de la ventana correctamente. 🎉</div>
+
+    <footer class="creditos-autor">
+        Autor: <strong>Lic. Bustamante de la rosa, Cesar Jose</strong> <br> Profesor de Innovación pedagógica
+    </footer>
+
+    <script>
+        const etiquetas = document.querySelectorAll('.etiqueta');
+        const zonas = document.querySelectorAll('.zona-soltar');
+        const mensajeExito = document.getElementById('mensaje-exito');
+        const contadorTexto = document.getElementById('contador-texto');
+        
+        let correctos = 0;
+        let errores = 0;
+
+        function mezclarEtiquetas() {
+            const banco = document.querySelector('.banco-etiquetas');
+            for (let i = banco.children.length; i >= 0; i--) {
+                banco.appendChild(banco.children[Math.random() * i | 0]);
+            }
+        }
+
+        function reiniciarJuego() {
+            errores = 0;
+            correctos = 0;
+            contadorTexto.textContent = `Errores: ${errores} / 3`;
+            mensajeExito.style.display = 'none';
+
+            zonas.forEach(zona => {
+                zona.classList.remove('correcto', 'over');
+                zona.textContent = ""; 
+                zona.style.borderColor = '#d4ac0d';
+                zona.style.backgroundColor = '#f7dc6f';
+            });
+
+            etiquetas.forEach(etiqueta => {
+                etiqueta.style.visibility = 'visible';
+                etiqueta.style.pointerEvents = 'auto';
+            });
+
+            mezclarEtiquetas();
+        }
+
+        mezclarEtiquetas();
+
+        // --- DRAG & DROP RATÓN ---
+        etiquetas.forEach(etiqueta => {
+            etiqueta.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.id);
+                etiqueta.classList.add('arrastrando');
+            });
+            etiqueta.addEventListener('dragend', () => {
+                etiqueta.classList.remove('arrastrando');
+            });
+        });
+
+        zonas.forEach(zona => {
+            zona.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (!zona.classList.contains('correcto')) {
+                    zona.classList.add('over');
+                }
+            });
+
+            zona.addEventListener('dragleave', () => {
+                zona.classList.remove('over');
+            });
+
+            zona.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zona.classList.remove('over');
+                
+                const idEtiqueta = e.dataTransfer.getData('text/plain');
+                if (!idEtiqueta) return;
+                
+                const etiqueta = document.getElementById(idEtiqueta);
+                validarAsignacion(etiqueta, zona);
+            });
+        });
+
+        // --- DISPOSITIVOS TÁCTILES ---
+        let elementoArrastradoTouch = null;
+
+        etiquetas.forEach(etiqueta => {
+            etiqueta.addEventListener('touchstart', (e) => {
+                elementoArrastradoTouch = e.currentTarget;
+                elementoArrastradoTouch.classList.add('arrastrando');
+            }, { passive: true });
+
+            etiqueta.addEventListener('touchmove', (e) => {
+                if (!elementoArrastradoTouch) return;
+                const touch = e.touches[0];
+                const elementoBajoDedo = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                zonas.forEach(zona => {
+                    if (zona === elementoBajoDedo && !zona.classList.contains('correcto')) {
+                        zona.classList.add('over');
+                    } else {
+                        zona.classList.remove('over');
+                    }
+                });
+            }, { passive: true });
+
+            etiqueta.addEventListener('touchend', (e) => {
+                if (!elementoArrastradoTouch) return;
+                elementoArrastradoTouch.classList.remove('arrastrando');
+
+                const touch = e.changedTouches[0];
+                const elementoBajoDedo = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                if (elementoBajoDedo && elementoBajoDedo.classList.contains('zona-soltar')) {
+                    elementoBajoDedo.classList.remove('over');
+                    validarAsignacion(elementoArrastradoTouch, elementoBajoDedo);
+                }
+                
+                elementoArrastradoTouch = null;
+            });
+        });
+
+        // --- VALIDACIÓN ---
+        function validarAsignacion(etiqueta, zona) {
+            if (!etiqueta || !zona || zona.classList.contains('correcto')) return;
+
+            if (zona.getAttribute('data-id') === etiqueta.getAttribute('data-id')) {
+                zona.classList.add('correcto');
+                zona.textContent = "✓"; 
+                etiqueta.style.visibility = 'hidden'; 
+                etiqueta.style.pointerEvents = 'none';
+                correctos++;
+                
+                if (correctos === etiquetas.length) {
+                    mensajeExito.style.display = 'block';
+                    mensajeExito.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                errores++;
+                contadorTexto.textContent = `Errores: ${errores} / 3`;
+                
+                if (errores >= 3) {
+                    alert('❌ Has cometido 3 errores. El juego se reiniciará por completo.');
+                    reiniciarJuego();
+                } else {
+                    zona.style.borderColor = '#e74c3c';
+                    zona.style.backgroundColor = 'rgba(231, 76, 60, 0.35)';
+                    setTimeout(() => {
+                        if (!zona.classList.contains('correcto')) {
+                            zona.style.borderColor = '#d4ac0d';
+                            zona.style.backgroundColor = '#f7dc6f';
+                        }
+                    }, 500);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
